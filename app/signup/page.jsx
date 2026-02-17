@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signUp } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,20 +31,36 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
       setIsLoading(false);
       return;
     }
 
-    // TODO: Add your signup logic here
-    // Example: await signUp(fullName, email, password);
-    
-    setTimeout(() => {
+    try {
+      // Call Supabase sign up function
+      const { data, error: signUpError } = await signUp(fullName, email, password);
+
+      if (signUpError) throw signUpError;
+
+      // Check if email confirmation is required
+      if (data?.user?.identities?.length === 0) {
+        setError('This email is already registered. Please sign in instead.');
+      } else if (data?.user && !data?.session) {
+        // Email confirmation required
+        setSuccess(true);
+      } else {
+        // Auto-signed in (email confirmation disabled)
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create account. Please try again.');
+    } finally {
       setIsLoading(false);
-      setSuccess(true);
-      // TODO: Handle successful signup (e.g., redirect or show verification message)
-    }, 1500);
+    }
   };
 
   if (success) {
@@ -68,7 +87,7 @@ export default function SignupPage() {
               Account Created!
             </CardTitle>
             <CardDescription className="text-zinc-400">
-              Your account has been successfully created.
+              Your account has been successfully created. Redirecting you to problems...
             </CardDescription>
           </CardHeader>
 
@@ -166,7 +185,7 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 flex items-start gap-2">
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 flex items-start gap-2 animate-fadeInUp">
                 <svg className="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -218,10 +237,10 @@ export default function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
+                minLength={6}
                 className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-cyan-500 focus:ring-cyan-500/20 transition-all"
               />
-              <p className="text-xs text-zinc-600">Must be at least 8 characters long</p>
+              <p className="text-xs text-zinc-600">Must be at least 6 characters long</p>
             </div>
 
             {/* Confirm Password */}

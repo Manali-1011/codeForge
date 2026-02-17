@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signIn } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,23 +11,32 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // TODO: Add your authentication logic here
-    // Example: await signIn(email, password);
-    
-    setTimeout(() => {
+    try {
+      // Call Supabase sign in function
+      const { data, error: signInError } = await signIn(email, password);
+
+      if (signInError) throw signInError;
+
+      // Successfully signed in
+      router.push('/protected');
+      router.refresh();
+    } catch (err) {
+      setError(err.message || 'Invalid email or password. Please try again.');
+    } finally {
       setIsLoading(false);
-      // TODO: Redirect to dashboard after successful login
-      // router.push('/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -86,6 +97,16 @@ export default function LoginPage() {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 flex items-start gap-2 animate-fadeInUp">
+                <svg className="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+            )}
+
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-zinc-300 text-sm font-medium">
@@ -154,9 +175,7 @@ export default function LoginPage() {
                   Signing in...
                 </div>
               ) : (
-                <>
-                  Sign In
-                </>
+                'Sign In'
               )}
             </Button>
           </form>

@@ -24,7 +24,7 @@ export default function AppLayout({ children }) {
             <Link href="/protected" className="text-zinc-400 hover:text-cyan-400 transition-colors font-medium">
               Dashboard
             </Link>
-            <Link href="/protected/problem" className="text-zinc-400 hover:text-cyan-400 transition-colors font-medium">
+            <Link href="/protected/problems" className="text-zinc-400 hover:text-cyan-400 transition-colors font-medium">
               Problems
             </Link>
             <Link href="/">
@@ -88,7 +88,7 @@ export default function AppLayout({ children }) {
               <h4 className="text-xs uppercase tracking-wider text-zinc-600 font-medium mb-4">Quick Links</h4>
               <ul className="space-y-3">
                 <li>
-                  <Link href="/protected/problem" className="text-zinc-400 hover:text-cyan-400 transition-all text-sm flex items-center gap-2 group font-light hover:translate-x-2">
+                  <Link href="/protected/problems" className="text-zinc-400 hover:text-cyan-400 transition-all text-sm flex items-center gap-2 group font-light hover:translate-x-2">
                     <span className="text-cyan-500/0 group-hover:text-cyan-500/100 transition-colors">→</span>
                     Problems List
                   </Link>
